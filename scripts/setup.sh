@@ -8,9 +8,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib.sh"
 source "${SCRIPT_DIR}/oc.sh"
 
+# Deploy mode: "helm" (default) or "kustomize" (legacy)
+DEPLOY_MODE=${DEPLOY_MODE:-"helm"}
+
 INSTALLER_KUSTOMIZE_OVERLAY=${INSTALLER_KUSTOMIZE_OVERLAY:-"development"}
-INSTALLER_NAMESPACE=${INSTALLER_NAMESPACE:-$(grep "^namespace:" "overlays/${INSTALLER_KUSTOMIZE_OVERLAY}/kustomization.yaml" | awk '{print $2}')}
-[[ -z "${INSTALLER_NAMESPACE}" ]] && echo "ERROR: Could not determine namespace from overlays/${INSTALLER_KUSTOMIZE_OVERLAY}/kustomization.yaml" && exit 1
+VALUES_FILE=${VALUES_FILE:-"values/development.yaml"}
+
+if [[ "${DEPLOY_MODE}" == "kustomize" ]]; then
+    INSTALLER_NAMESPACE=${INSTALLER_NAMESPACE:-$(grep "^namespace:" "overlays/${INSTALLER_KUSTOMIZE_OVERLAY}/kustomization.yaml" | awk '{print $2}')}
+    [[ -z "${INSTALLER_NAMESPACE}" ]] && echo "ERROR: Could not determine namespace from overlays/${INSTALLER_KUSTOMIZE_OVERLAY}/kustomization.yaml" && exit 1
+else
+    INSTALLER_NAMESPACE=${INSTALLER_NAMESPACE:-"osac"}
+fi
+
 INSTALLER_VM_TEMPLATE=${INSTALLER_VM_TEMPLATE:-}
 # EXTRA_SERVICES=true enables all optional services (storage, ingress, virtualization, MCE)
 EXTRA_SERVICES=${EXTRA_SERVICES:-"false"}
@@ -20,7 +30,12 @@ VIRT_SERVICE=${VIRT_SERVICE:-${EXTRA_SERVICES}}
 MCE_SERVICE=${MCE_SERVICE:-${EXTRA_SERVICES}}
 
 echo "=== Setting up OSAC deployment ==="
-echo "Overlay: ${INSTALLER_KUSTOMIZE_OVERLAY}"
+echo "Deploy mode: ${DEPLOY_MODE}"
+if [[ "${DEPLOY_MODE}" == "kustomize" ]]; then
+    echo "Overlay: ${INSTALLER_KUSTOMIZE_OVERLAY}"
+else
+    echo "Values file: ${VALUES_FILE}"
+fi
 echo "Namespace: ${INSTALLER_NAMESPACE}"
 echo ""
 
@@ -245,8 +260,21 @@ wait_for_resource deployment/automation-controller-operator-controller-manager c
 # Wait for OSAC namespace to finish terminating if needed
 wait_for_namespace_cleanup "${INSTALLER_NAMESPACE}"
 
-# Apply kustomize overlay
-oc apply -k overlays/${INSTALLER_KUSTOMIZE_OVERLAY}
+if [[ "${DEPLOY_MODE}" == "helm" ]]; then
+    # --- Helm deployment mode ---
+    echo "Deploying OSAC using Helm..."
+    helm dependency build charts/osac/
+    helm upgrade --install osac charts/osac/ \
+        --namespace "${INSTALLER_NAMESPACE}" \
+        --create-namespace \
+        --values "${VALUES_FILE}" \
+        --timeout 40m \
+        --wait
+else
+    # --- Kustomize deployment mode (legacy) ---
+    echo "Deploying OSAC using Kustomize..."
+    oc apply -k "overlays/${INSTALLER_KUSTOMIZE_OVERLAY}"
+fi
 
 # Ensure the shared ca-bundle Bundle exists and includes our namespace
 "${SCRIPT_DIR}/ensure-ca-bundle.sh" "${INSTALLER_NAMESPACE}"
@@ -274,9 +302,11 @@ else
 fi
 wait_for_resource deployment/osac-console-proxy condition=Available 300 "${CONSOLE_PROXY_NS}"
 
-# Wait for AAP bootstrap job to complete
-echo "Waiting for AAP bootstrap job to complete (this may take up to 40 minutes)..."
-wait_for_resource job/aap-bootstrap condition=complete 2400 ${INSTALLER_NAMESPACE}
+if [[ "${DEPLOY_MODE}" == "kustomize" ]]; then
+    # In kustomize mode, wait for bootstrap job (in helm mode, this is a hook)
+    echo "Waiting for AAP bootstrap job to complete (this may take up to 40 minutes)..."
+    wait_for_resource job/aap-bootstrap condition=complete 2400 "${INSTALLER_NAMESPACE}"
+fi
 
 # Wait for Authorino to be ready (gRPC auth depends on it)
 wait_for_resource deployment/authorino condition=Available 300 ${INSTALLER_NAMESPACE}

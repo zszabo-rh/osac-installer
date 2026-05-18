@@ -1,0 +1,96 @@
+# OSAC CaaS (Cluster-as-a-Service) CI Environment Values
+# Replaces overlays/caas-ci/kustomization.yaml
+
+# --- Operator ---
+operator:
+  image:
+    repository: ghcr.io/osac-project/osac-operator
+    tag: sha-0cced2f
+    pullPolicy: Always
+  provisioning:
+    provider: "aap"
+  aap:
+    insecureSkipVerify: "true"
+  fulfillment:
+    serverAddress: "fulfillment-api:8000"
+    tokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+  controllers:
+    clusterOrder: true
+    tenant: true
+    networking: true
+
+# --- Fulfillment Service ---
+service:
+  variant: openshift
+  images:
+    service: ghcr.io/osac-project/fulfillment-service:sha-58ba45f
+    envoy: docker.io/envoyproxy/envoy:v1.33.0
+  certs:
+    issuerRef:
+      kind: ClusterIssuer
+      name: default-ca
+    caBundle:
+      configMap: ca-bundle
+  auth:
+    issuerUrl: https://keycloak.keycloak.svc.cluster.local/realms/osac
+    controllerCredentials:
+    - secret:
+        name: fulfillment-controller-credentials
+        items:
+        - key: client-id
+          param: client-id
+        - key: client-secret
+          param: client-secret
+  idp:
+    provider: keycloak
+    url: https://keycloak.keycloak.svc.cluster.local
+    credentials:
+    - secret:
+        name: fulfillment-controller-credentials
+        items:
+        - key: client-id
+          param: client-id
+        - key: client-secret
+          param: client-secret
+  database:
+    connection:
+    - secret:
+        name: fulfillment-db
+        items:
+        - key: url
+          param: url
+    - secret:
+        name: postgres-client-cert-service
+        items:
+        - key: tls.crt
+          param: sslcert
+        - key: tls.key
+          param: sslkey
+        - key: ca.crt
+          param: sslrootcert
+  log:
+    level: info
+
+# --- AAP ---
+aap:
+  aap:
+    instance:
+      enabled: true
+      name: "osac-aap"
+  bootstrap:
+    enabled: true
+    image: ghcr.io/osac-project/osac-aap:sha-acd61c8
+    cliImage: quay.io/openshift/origin-cli:4.20.0
+    backoffLimit: 15
+  configAsCode:
+    manifestSecret: "config-as-code-manifest-ig"
+    secret: "config-as-code-ig"
+
+# --- Validation ---
+validation:
+  enabled: true
+
+# --- Database migration ---
+dbMigrate:
+  enabled: false
+  image: ghcr.io/osac-project/fulfillment-service:sha-58ba45f
