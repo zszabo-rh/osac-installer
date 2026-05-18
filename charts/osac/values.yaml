@@ -1,0 +1,120 @@
+# Open Sovereign AI Cloud - Unified Helm Values
+# This values file configures all OSAC components via the umbrella chart.
+
+# --- Operator CRDs ---
+operatorCrds:
+  install: true
+
+# --- Operator ---
+operator:
+  image:
+    repository: ghcr.io/osac-project/osac-operator
+    tag: latest
+    pullPolicy: Always
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 64Mi
+  provisioning:
+    provider: "aap"
+  aap:
+    url: ""
+    token: ""
+    insecureSkipVerify: "true"
+    statusPollInterval: "30s"
+    templatePrefix: "osac"
+  fulfillment:
+    serverAddress: "fulfillment-api:8000"
+    tokenFile: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+  controllers:
+    clusterOrder: true
+    computeInstance: true
+    tenant: true
+    networking: true
+  configSecret:
+    name: "osac-config"
+    optional: true
+
+# --- Fulfillment Service ---
+service:
+  variant: openshift
+  images:
+    service: ghcr.io/osac-project/fulfillment-service:latest
+    envoy: docker.io/envoyproxy/envoy:v1.33.0
+  certs:
+    issuerRef:
+      kind: ClusterIssuer
+      name: default-ca
+    caBundle:
+      configMap: ca-bundle
+  auth:
+    issuerUrl: ""
+    controllerCredentials: []
+  idp:
+    provider: keycloak
+    url: ""
+    credentials: []
+  database:
+    connection: []
+    # Example:
+    # connection:
+    # - secret:
+    #     name: fulfillment-db
+    #     items:
+    #     - key: url
+    #       param: url
+  log:
+    level: info
+    headers: false
+    bodies: false
+
+# --- AAP ---
+aap:
+  aap:
+    instance:
+      enabled: true
+      name: "osac-aap"
+      controller:
+        disabled: false
+      eda:
+        disabled: false
+      hub:
+        disabled: true
+      lightspeed:
+        disabled: true
+      noLog: true
+      redisMode: standalone
+      routeTlsTerminationMechanism: Edge
+      imagePullPolicy: IfNotPresent
+  bootstrap:
+    enabled: true
+    image: ghcr.io/osac-project/osac-aap:latest
+    cliImage: quay.io/openshift/origin-cli:4.20.0
+    backoffLimit: 15
+    gateway:
+      hostname: ""
+    eda:
+      hostname: ""
+    controller:
+      hostname: ""
+  configAsCode:
+    manifestSecret: "config-as-code-manifest-ig"
+    secret: "config-as-code-ig"
+
+# --- Validation hooks ---
+validation:
+  enabled: true
+  image: bitnami/kubectl:latest
+
+# --- Database migration hook ---
+# NOTE: Disabled until the 'migrate' subcommand is released in the
+# fulfillment-service image. Re-enable once available.
+dbMigrate:
+  enabled: false
+  image: ghcr.io/osac-project/fulfillment-service:latest
+  dbUrl: ""
+  dbUrlFile: ""

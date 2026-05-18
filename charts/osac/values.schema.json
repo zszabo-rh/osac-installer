@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OSAC Helm Chart Values",
+  "description": "Configuration values for Open Sovereign AI Cloud deployment",
+  "type": "object",
+  "properties": {
+    "operatorCrds": {
+      "type": "object",
+      "description": "OSAC Operator CRDs configuration",
+      "properties": {
+        "install": {
+          "type": "boolean",
+          "description": "Install OSAC CRDs",
+          "default": true
+        }
+      }
+    },
+    "operator": {
+      "type": "object",
+      "description": "OSAC Operator configuration",
+      "properties": {
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "description": "Operator container image repository",
+              "default": "ghcr.io/osac-project/osac-operator"
+            },
+            "tag": {
+              "type": "string",
+              "description": "Operator container image tag",
+              "default": "latest"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "description": "Image pull policy",
+              "enum": ["Always", "IfNotPresent", "Never"],
+              "default": "Always"
+            }
+          }
+        },
+        "replicaCount": {
+          "type": "integer",
+          "description": "Number of operator replicas",
+          "minimum": 1,
+          "default": 1
+        },
+        "provisioning": {
+          "type": "object",
+          "properties": {
+            "provider": {
+              "type": "string",
+              "description": "Provisioning provider",
+              "enum": ["aap", "eda"],
+              "default": "aap"
+            }
+          }
+        },
+        "aap": {
+          "type": "object",
+          "description": "AAP connection settings for the operator",
+          "properties": {
+            "url": {
+              "type": "string",
+              "description": "AAP controller URL"
+            },
+            "token": {
+              "type": "string",
+              "description": "AAP API token"
+            },
+            "insecureSkipVerify": {
+              "type": "string",
+              "description": "Skip TLS verification for AAP",
+              "default": "true"
+            },
+            "statusPollInterval": {
+              "type": "string",
+              "description": "Interval for polling AAP job status",
+              "default": "30s"
+            },
+            "templatePrefix": {
+              "type": "string",
+              "description": "Prefix for AAP job templates",
+              "default": "osac"
+            }
+          }
+        },
+        "fulfillment": {
+          "type": "object",
+          "properties": {
+            "serverAddress": {
+              "type": "string",
+              "description": "Fulfillment service gRPC address",
+              "default": "fulfillment-api:8000"
+            },
+            "tokenFile": {
+              "type": "string",
+              "description": "Path to service account token file"
+            }
+          }
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "description": "Fulfillment Service configuration",
+      "properties": {
+        "variant": {
+          "type": "string",
+          "description": "Deployment variant",
+          "enum": ["openshift", "kind"],
+          "default": "openshift"
+        },
+        "images": {
+          "type": "object",
+          "properties": {
+            "service": {
+              "type": "string",
+              "description": "Fulfillment service container image"
+            },
+            "envoy": {
+              "type": "string",
+              "description": "Envoy proxy container image"
+            }
+          }
+        }
+      }
+    },
+    "aap": {
+      "type": "object",
+      "description": "AAP bootstrap and instance configuration",
+      "properties": {
+        "aap": {
+          "type": "object",
+          "properties": {
+            "instance": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Create AAP instance CR (set false if AAP is managed externally)",
+                  "default": true
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Name of the AAP instance",
+                  "default": "osac-aap"
+                }
+              }
+            }
+          }
+        },
+        "bootstrap": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Run AAP bootstrap job after install",
+              "default": true
+            },
+            "image": {
+              "type": "string",
+              "description": "Bootstrap job container image"
+            },
+            "backoffLimit": {
+              "type": "integer",
+              "description": "Number of retries for bootstrap job",
+              "default": 15
+            }
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "description": "Pre-install validation hook",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Run pre-install validation checks",
+          "default": true
+        }
+      }
+    },
+    "dbMigrate": {
+      "type": "object",
+      "description": "Database migration hook",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Run database migrations on upgrade",
+          "default": true
+        },
+        "image": {
+          "type": "string",
+          "description": "Container image for migration job (should match fulfillment service image)"
+        },
+        "dbUrl": {
+          "type": "string",
+          "description": "Database connection URL (optional, alternative to dbUrlFile)"
+        },
+        "dbUrlFile": {
+          "type": "string",
+          "description": "Path to file containing database connection URL (optional, alternative to dbUrl)"
+        }
+      }
+    }
+  }
+}
