@@ -248,40 +248,8 @@ wait_for_namespace_cleanup "${INSTALLER_NAMESPACE}"
 # Apply kustomize overlay
 oc apply -k overlays/${INSTALLER_KUSTOMIZE_OVERLAY}
 
-# Ensure the shared ca-bundle Bundle exists and includes our namespace.
-# The Bundle is cluster-scoped and shared across overlays. We never apply it
-# via kustomize because that would overwrite the namespaceSelector and break
-# other developers' deployments. Instead we create it once or patch additively.
-if oc get bundle ca-bundle &>/dev/null; then
-    EXISTING=$(oc get bundle ca-bundle -o jsonpath='{.spec.target.namespaceSelector.matchExpressions[0].values}')
-    if ! echo "${EXISTING}" | grep -q "\"${INSTALLER_NAMESPACE}\""; then
-        echo "Adding ${INSTALLER_NAMESPACE} to ca-bundle namespace selector..."
-        oc patch bundle ca-bundle --type=json -p \
-            "[{\"op\":\"add\",\"path\":\"/spec/target/namespaceSelector/matchExpressions/0/values/-\",\"value\":\"${INSTALLER_NAMESPACE}\"}]"
-    fi
-else
-    echo "Creating ca-bundle Bundle targeting ${INSTALLER_NAMESPACE}..."
-    oc apply -f - <<BUNDLE_EOF
-apiVersion: trust.cert-manager.io/v1alpha1
-kind: Bundle
-metadata:
-  name: ca-bundle
-spec:
-  sources:
-  - secret:
-      name: "default-ca"
-      key: "ca.crt"
-  target:
-    configMap:
-      key: bundle.pem
-    namespaceSelector:
-      matchExpressions:
-      - key: kubernetes.io/metadata.name
-        operator: In
-        values:
-        - ${INSTALLER_NAMESPACE}
-BUNDLE_EOF
-fi
+# Ensure the shared ca-bundle Bundle exists and includes our namespace
+"${SCRIPT_DIR}/ensure-ca-bundle.sh" "${INSTALLER_NAMESPACE}"
 
 # Create controller OAuth credentials from the Keycloak realm config
 FC_CLIENT_SECRET=$(jq -er '.clients[] | select(.clientId == "osac-controller") | .secret // empty' prerequisites/keycloak/service/files/realm.json)

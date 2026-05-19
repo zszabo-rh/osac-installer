@@ -138,8 +138,8 @@ Use Kustomize to manage your environment-specific configurations.
        {"op":"add","path":"/spec/target/namespaceSelector/matchExpressions/0/values/-","value":"<project-name>"}
      ]'
      ```
-     If no `ca-bundle` Bundle exists yet, apply `ca-trust-bundle.yaml` once:
-     `oc apply -f overlays/<project-name>/ca-trust-bundle.yaml`
+     Alternatively, run `scripts/ensure-ca-bundle.sh <project-name>` which
+     handles both creation and patching.
    - In `kustomization.yaml`: Replace `<cluster-name>.<base-domain>` in the `OSAC_AAP_URL`
      value with your cluster's actual domain (e.g., `mgmt.example.devcluster.openshift.com`).
      You can find it by running: `oc get ingresses.config/cluster -o jsonpath='{.spec.domain}'`

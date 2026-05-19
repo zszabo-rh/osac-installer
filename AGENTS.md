@@ -119,7 +119,7 @@ for d in overlays/*/; do kustomize build "$d" > "/tmp/after-$(basename $d).yaml"
     {"op":"add","path":"/spec/target/namespaceSelector/matchExpressions/0/values/-","value":"<your-namespace>"}
   ]'
   ```
-  If the Bundle doesn't exist yet, create it from `overlays/<overlay>/ca-trust-bundle.yaml` and then patch as above.
+  Or run `scripts/ensure-ca-bundle.sh <your-namespace>` which handles both creation and patching.
 
 ## Shared Cluster Constraints
 
