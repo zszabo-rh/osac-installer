@@ -19,14 +19,18 @@ AAP_URL="https://${AAP_ROUTE_HOST}"
 AAP_ADMIN_PASSWORD=$(oc get secret osac-aap-admin-password -n ${INSTALLER_NAMESPACE} -o jsonpath='{.data.password}' | base64 -d)
 
 # Create an API token using basic auth against the AAP gateway
-AAP_TOKEN=$(curl -sk -X POST \
+AAP_RESPONSE=$(curl -sk -X POST \
     -u "admin:${AAP_ADMIN_PASSWORD}" \
     -H "Content-Type: application/json" \
     -d '{"description": "osac-operator", "scope": "write"}' \
-    "${AAP_URL}/api/gateway/v1/tokens/" | jq -r '.token')
+    "${AAP_URL}/api/gateway/v1/tokens/")
+AAP_TOKEN=$(echo "${AAP_RESPONSE}" | jq -r '.token') || {
+    echo "ERROR: AAP gateway returned non-JSON response: ${AAP_RESPONSE}"
+    exit 1
+}
 
 if [[ -z "${AAP_TOKEN}" || "${AAP_TOKEN}" == "null" ]]; then
-    echo "Failed to create AAP API token"
+    echo "Failed to create AAP API token. Response: ${AAP_RESPONSE}"
     exit 1
 fi
 
