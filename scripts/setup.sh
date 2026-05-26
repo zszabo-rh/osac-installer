@@ -273,7 +273,7 @@ if [[ "${DEPLOY_MODE}" == "helm" ]]; then
 else
     # --- Kustomize deployment mode (legacy) ---
     echo "Deploying OSAC using Kustomize..."
-    oc apply -k "overlays/${INSTALLER_KUSTOMIZE_OVERLAY}"
+    oc apply -k "overlays/${INSTALLER_KUSTOMIZE_OVERLAY}" --server-side --force-conflicts
 fi
 
 # Ensure the shared ca-bundle Bundle exists and includes our namespace
