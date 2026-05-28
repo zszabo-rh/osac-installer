@@ -27,7 +27,7 @@ images:
   newName: quay.io/sclorg/postgresql-15-c9s
   newTag: latest
 - name: ghcr.io/osac-project/fulfillment-service
-  newTag: sha-1ce607d
+  newTag: sha-c23f884
 - name: osac-aap
   newName: ghcr.io/osac-project/osac-aap
   newTag: sha-7d1c000
