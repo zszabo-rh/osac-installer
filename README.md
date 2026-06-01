@@ -143,6 +143,16 @@ Use Kustomize to manage your environment-specific configurations.
      ```
      Alternatively, run `scripts/ensure-ca-bundle.sh <project-name>` which
      handles both creation and patching.
+   - In `kustomization.yaml`: Update the `emergency_service_accounts` in the AuthConfig
+     patch to use your namespace. The Rego policy contains a hardcoded service account
+     reference that must match your deployment namespace:
+     ```
+     emergency_service_accounts := {
+       "system:serviceaccount:<project-name>:admin",
+     }
+     ```
+     If this is not updated, the `admin` ServiceAccount will get `PermissionDenied` errors
+     when calling private API methods (e.g., hub registration during `setup.sh`).
    - In `kustomization.yaml`: Replace `<cluster-name>.<base-domain>` in the `OSAC_AAP_URL`
      value with your cluster's actual domain (e.g., `mgmt.example.devcluster.openshift.com`).
      You can find it by running: `oc get ingresses.config/cluster -o jsonpath='{.spec.domain}'`
