@@ -25,3 +25,6 @@ images:
 - name: keycloak
   newName: quay.io/keycloak/keycloak
   newTag: latest
+- name: postgres
+  newName: quay.io/sclorg/postgresql-15-c9s
+  newTag: latest
