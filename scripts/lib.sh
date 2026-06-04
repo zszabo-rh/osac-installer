@@ -88,3 +88,6 @@ retry_command() {
         attempt=$(( attempt + 1 ))
     done
 }
+
+_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${_LIB_DIR}/oc.sh"

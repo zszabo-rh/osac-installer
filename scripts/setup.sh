@@ -6,7 +6,6 @@ set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/lib.sh"
-source "${SCRIPT_DIR}/oc.sh"
 
 # Deploy mode: "helm" (default) or "kustomize" (legacy)
 DEPLOY_MODE=${DEPLOY_MODE:-"helm"}
