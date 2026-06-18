@@ -40,6 +40,10 @@ operator:
 # --- Fulfillment Service ---
 service:
   variant: openshift
+  # [REQUIRED] Hostname for the external API Route (e.g. fulfillment-api-osac.apps.mycluster.example.com)
+  externalHostname: ""
+  # [REQUIRED] Hostname for the internal API Route (e.g. fulfillment-internal-api-osac.apps.mycluster.example.com)
+  internalHostname: ""
   images:
     service: ghcr.io/osac-project/fulfillment-service:latest
     envoy: ghcr.io/osac-project/envoy:v1.33.0

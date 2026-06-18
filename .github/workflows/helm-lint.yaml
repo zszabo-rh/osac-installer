@@ -45,7 +45,10 @@ jobs:
         set -euo pipefail
         for f in values/*.yaml; do
           echo "--- helm template with $(basename "$f") ---"
-          helm template osac charts/osac/ --values "$f" > /dev/null
+          helm template osac charts/osac/ --values "$f" \
+            --set service.externalHostname=fulfillment-api.example.com \
+            --set service.internalHostname=fulfillment-internal-api.example.com \
+            > /dev/null
         done
 
     - name: Validate values schema

@@ -101,6 +101,18 @@ service:
   # Deployment variant: "openshift" for OCP clusters, "kind" for local dev.
   variant: openshift
 
+  # [REQUIRED] Hostname used to access the public API from outside the cluster.
+  # This is the hostname for the OpenShift Route or Ingress that exposes the
+  # fulfillment API externally.
+  # Example: fulfillment-api-osac.apps.mycluster.example.com
+  externalHostname: ""
+
+  # [REQUIRED] Hostname used to access both the public and private APIs
+  # internally. This Route/Ingress is typically not exposed to the internet
+  # and is used by other OSAC components (operator, AAP) within the cluster.
+  # Example: fulfillment-internal-api-osac.apps.mycluster.example.com
+  internalHostname: ""
+
   images:
     # Production: pin to a specific SHA tag.
     # Development: use "latest".

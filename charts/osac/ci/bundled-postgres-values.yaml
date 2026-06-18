@@ -6,6 +6,8 @@ bundledPostgres:
     user: service
 
 service:
+  externalHostname: fulfillment-api.example.com
+  internalHostname: fulfillment-internal-api.example.com
   auth:
     issuerUrl: https://keycloak.example.com/realms/osac
     controllerCredentials:

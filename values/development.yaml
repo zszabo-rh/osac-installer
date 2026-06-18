@@ -26,6 +26,8 @@ operator:
 # --- Fulfillment Service ---
 service:
   variant: openshift
+  externalHostname: ""  # Set to fulfillment-api-<namespace>.apps.<cluster>.<domain>
+  internalHostname: ""  # Set to fulfillment-internal-api-<namespace>.apps.<cluster>.<domain>
   images:
     service: ghcr.io/osac-project/fulfillment-service:latest
     envoy: ghcr.io/osac-project/envoy:v1.33.0

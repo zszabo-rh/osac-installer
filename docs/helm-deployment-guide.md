@@ -640,6 +640,8 @@ Key settings to review in your values file:
 
 | Setting | Description | Where to Find |
 |---------|-------------|---------------|
+| `service.externalHostname` | **Required.** Hostname for the external API Route | `fulfillment-api-${NAMESPACE}.apps.<cluster>.<domain>` |
+| `service.internalHostname` | **Required.** Hostname for the internal API Route | `fulfillment-internal-api-${NAMESPACE}.apps.<cluster>.<domain>` |
 | `operator.aap.url` | AAP controller API URL | Set post-install by `prepare-aap.sh` |
 | `service.auth.issuerUrl` | Keycloak realm URL | `https://keycloak.keycloak.svc.cluster.local/realms/osac` (default works) |
 | `service.idp.url` | Keycloak base URL | `https://keycloak.keycloak.svc.cluster.local` (default works) |
@@ -648,6 +650,20 @@ Key settings to review in your values file:
 | `aap.bootstrap.enabled` | Run bootstrap job | `true` (configures AAP with job templates) |
 | `hubAccess.enabled` | Create hub-access SA and RBAC | `true` (required for hub registration) |
 | `publishTemplates.enabled` | Create publish-templates-ig ConfigMap | `true` (template publishing config) |
+
+#### Determine API Hostnames
+
+The fulfillment service requires explicit hostnames for the external and internal API
+Routes. These are used in TLS certificate generation and cannot be auto-detected. On
+OpenShift, determine your cluster's ingress domain and set the hostnames accordingly:
+
+```bash
+DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
+export EXTERNAL_HOSTNAME="fulfillment-api-${NAMESPACE}.${DOMAIN}"
+export INTERNAL_HOSTNAME="fulfillment-internal-api-${NAMESPACE}.${DOMAIN}"
+```
+
+Set these in your values file or pass them via `--set` at install time.
 
 ### 3.3 Validate
 
@@ -661,7 +677,10 @@ helm lint charts/osac/
 # Dry-run render
 helm template osac charts/osac/ \
   --namespace ${NAMESPACE} \
-  --values values/development.yaml > /dev/null
+  --values values/development.yaml \
+  --set service.externalHostname=${EXTERNAL_HOSTNAME} \
+  --set service.internalHostname=${INTERNAL_HOSTNAME} \
+  > /dev/null
 ```
 
 ### 3.4 Deploy
@@ -671,6 +690,8 @@ helm upgrade --install osac charts/osac/ \
   --namespace ${NAMESPACE} \
   --create-namespace \
   --values values/development.yaml \
+  --set service.externalHostname=${EXTERNAL_HOSTNAME} \
+  --set service.internalHostname=${INTERNAL_HOSTNAME} \
   --timeout 40m \
   --wait
 ```
@@ -807,6 +828,7 @@ Keycloak, AAP.
 
 ```bash
 export NAMESPACE=osac
+DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
 # Phase 1: Install LVMS (if needed), CNV, cert-manager, trust-manager,
 #           CA issuer, Authorino, Keycloak, AAP operator
 # Phase 2: Create secrets (license, config-as-code, credentials)
@@ -814,6 +836,8 @@ export NAMESPACE=osac
 helm upgrade --install osac charts/osac/ \
   --namespace ${NAMESPACE} --create-namespace \
   --values values/vmaas-ci.yaml \
+  --set service.externalHostname=fulfillment-api-${NAMESPACE}.${DOMAIN} \
+  --set service.internalHostname=fulfillment-internal-api-${NAMESPACE}.${DOMAIN} \
   --timeout 40m --wait
 # Phase 4: Post-install scripts
 ```
@@ -825,6 +849,7 @@ Keycloak, AAP.
 
 ```bash
 export NAMESPACE=osac
+DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
 # Phase 1: Install LVMS (if needed), MCE, cert-manager, trust-manager,
 #           CA issuer, Authorino, Keycloak, AAP operator
 # Phase 2: Create secrets (license, config-as-code, credentials)
@@ -832,6 +857,8 @@ export NAMESPACE=osac
 helm upgrade --install osac charts/osac/ \
   --namespace ${NAMESPACE} --create-namespace \
   --values values/caas-ci.yaml \
+  --set service.externalHostname=fulfillment-api-${NAMESPACE}.${DOMAIN} \
+  --set service.internalHostname=fulfillment-internal-api-${NAMESPACE}.${DOMAIN} \
   --timeout 40m --wait
 # Phase 4: Post-install scripts
 ```
@@ -843,12 +870,15 @@ Authorino, Keycloak, AAP).
 
 ```bash
 export NAMESPACE=osac
+DOMAIN=$(oc get ingresses.config/cluster -o jsonpath='{.spec.domain}')
 # Phase 1: Install all prerequisites
 # Phase 2: Create secrets
 # Phase 3: Deploy
 helm upgrade --install osac charts/osac/ \
   --namespace ${NAMESPACE} --create-namespace \
   --values values/development.yaml \
+  --set service.externalHostname=fulfillment-api-${NAMESPACE}.${DOMAIN} \
+  --set service.internalHostname=fulfillment-internal-api-${NAMESPACE}.${DOMAIN} \
   --timeout 40m --wait
 # Phase 4: Post-install scripts
 ```

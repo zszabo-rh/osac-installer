@@ -94,8 +94,18 @@
     "service": {
       "type": "object",
       "description": "Fulfillment Service configuration",
-      "required": ["auth", "certs"],
+      "required": ["externalHostname", "internalHostname", "auth", "certs"],
       "properties": {
+        "externalHostname": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Hostname for the external API Route"
+        },
+        "internalHostname": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Hostname for the internal API Route"
+        },
         "variant": {
           "type": "string",
           "description": "Deployment variant",
