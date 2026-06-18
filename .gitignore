@@ -43,3 +43,6 @@ kubeconfig.hub-access
 # Helm build artifacts
 charts/*/charts/*.tgz
 charts/*/Chart.lock
+
+# Implementation artifacts
+.artifacts/
