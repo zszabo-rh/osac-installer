@@ -184,12 +184,14 @@ dbMigrate:
 # --- Cluster Fulfillment Instance Group ---
 # ConfigMap and Secret for the AAP cluster-fulfillment instance group.
 # Carries network backend selection, Netris credentials, SSH config,
-# external-access domains, and hosted-cluster defaults.
+# external-access domains, hosted-cluster defaults, and DNS backend config.
 clusterFulfillment:
   enabled: false
   config:
     NETWORK_CLASS: ""
     NETWORK_STEPS_COLLECTION: ""
+    DNS_CLASS: ""
+    DNS_ZONE: ""
     NETRIS_CONTROLLER_URL: ""
     NETRIS_USERNAME: ""
     NETRIS_SITE_ID: ""
