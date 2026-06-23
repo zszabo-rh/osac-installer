@@ -27,7 +27,7 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-    - 192.168.40.200-192.168.40.250
+    - ${METALLB_ADDRESS_CIDR}
   autoAssign: true
   avoidBuggyIPs: true  # safeguard: exclude .0 and .255 if the address range is ever extended
 ---

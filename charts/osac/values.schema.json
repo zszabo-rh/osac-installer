@@ -946,6 +946,22 @@
         }
       }
     },
+    "capiProvider": {
+      "type": "object",
+      "description": "CAPI Provider RBAC for Agent platform access",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Create the agent namespace and CAPI provider Role",
+          "default": true
+        },
+        "agentNamespace": {
+          "type": "string",
+          "description": "Namespace where infrastructure provider agents run",
+          "default": "hardware-inventory"
+        }
+      }
+    },
     "networkFulfillment": {
       "type": "object",
       "description": "ConfigMap and Secret for the AAP network-fulfillment instance group",
