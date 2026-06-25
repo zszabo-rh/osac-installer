@@ -178,6 +178,24 @@ rules:
       - baremetalinstances/status
     verbs:
       - get
+  - apiGroups:
+      - osac.openshift.io
+    resources:
+      - tenants
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
+  - apiGroups:
+      - osac.openshift.io
+    resources:
+      - tenants/status
+    verbs:
+      - get
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
