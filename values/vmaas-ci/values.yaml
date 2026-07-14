@@ -5,7 +5,7 @@
 operator:
   image:
     repository: ghcr.io/osac-project/osac-operator
-    tag: sha-d6398e8
+    tag: sha-a09d53b
     pullPolicy: Always
   provisioning:
     provider: "aap"
@@ -30,7 +30,7 @@ service:
   internalHostname: ""  # Set to fulfillment-internal-api-<namespace>.apps.<cluster>.<domain>
   variant: openshift
   images:
-    service: ghcr.io/osac-project/fulfillment-service:sha-da39c1d
+    service: ghcr.io/osac-project/fulfillment-service:sha-2dca058
     envoy: ghcr.io/osac-project/envoy:v1.33.0
   certs:
     issuerRef:
@@ -87,7 +87,7 @@ service:
 ui:
   enabled: true
   images:
-    ui: ghcr.io/osac-project/osac-ui:sha-c116f2e
+    ui: ghcr.io/osac-project/osac-ui:sha-9cdfb35
   api:
     fulfillment:
       certs:
@@ -106,15 +106,15 @@ aap:
       name: "osac-aap"
   bootstrap:
     enabled: true
-    image: ghcr.io/osac-project/osac-aap:sha-85c079e
+    image: ghcr.io/osac-project/osac-aap:sha-b5e5798
     cliImage: quay.io/openshift/origin-cli:4.20.0
     backoffLimit: 15
   configAsCode:
     manifestSecret: "config-as-code-manifest-ig"
     secret: "config-as-code-ig"
-    eeImage: "ghcr.io/osac-project/osac-aap:sha-85c079e"
+    eeImage: "ghcr.io/osac-project/osac-aap:sha-b5e5798"
     projectGitUri: "https://github.com/osac-project/osac-aap"
-    projectGitBranch: "85c079e5d254d93f8fca0f7ddd912b0c15899ab9"
+    projectGitBranch: "b5e5798ea4fe3eb13963a60c96e1cbf95bc1e5ef"
 
 # --- Validation ---
 validation:
@@ -127,7 +127,7 @@ bmf:
 # --- Database migration ---
 dbMigrate:
   enabled: false
-  image: ghcr.io/osac-project/fulfillment-service:sha-da39c1d
+  image: ghcr.io/osac-project/fulfillment-service:sha-2dca058
 
 # CI full-install: chart-managed DB secrets; setup.sh deploys the integration-test
 # postgres chart when the postgres Service has no ready endpoints (see lib.sh).
